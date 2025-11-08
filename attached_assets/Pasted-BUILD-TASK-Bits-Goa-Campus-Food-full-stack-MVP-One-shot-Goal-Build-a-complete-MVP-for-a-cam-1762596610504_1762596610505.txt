@@ -1,0 +1,96 @@
+BUILD TASK: Bits Goa Campus Food — full-stack MVP (One-shot)
+
+Goal
+Build a complete MVP for a campus-only food ordering app for BITS Goa. The app must have two interfaces (User and Vendor), use the Neon Postgres DB already provided in Replit Secrets via `DATABASE_URL` (do NOT create any new database or ask for another DB), and use native WebSockets for realtime updates (order confirmations / status updates). Use Replit's dev environment; follow best practices and create runnable code.
+
+Tech Stack & tools
+- Next.js (TypeScript)
+- Tailwind CSS
+- Prisma ORM (use the provided `DATABASE_URL`)
+- NextAuth.js (Google provider) for auth
+- Native WebSocket server using the `ws` package for realtime
+- Prisma migrations for DB schema
+- LocalStorage for cart, minimal CSS polish with Tailwind
+- Tests: basic Jest test for order total calculation (optional)
+- Deployment instructions for running on Replit
+
+Secrets (already set by me in Replit Secrets)
+- `DATABASE_URL` (Neon connection string) — MUST be used by Prisma. Do not create or attempt to provision any other DB.
+- `NEXTAUTH_SECRET` — use for NextAuth
+- `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` — for Google sign-in
+
+High-level requirements
+1. Only allow sign-ins for emails ending with `@goa.bits-pilani.ac.in`. If a user authenticates with a non-campus email, immediately sign them out and show an error message.
+2. Two roles: `student|faculty` (default) and `vendor` and `admin`. By default signups create student/faculty; vendor rows are created by admin or seeded.
+3. Vendors are pre-seeded (create seed script) — we have a limited number and they will not self-register.
+4. No delivery partners — when vendor confirms an order they will set an ETA (minutes) and user will receive ETA + vendor contact. Vendor sees user contact in vendor dashboard.
+5. Use Neon DB only (Prisma + DATABASE_URL). Do not create any other DB services or ask for new DB connection strings.
+6. Real-time: use a native WebSocket server (the `ws` package). Keep it simple: when vendor updates order (confirm/status), broadcast to connected clients (user session subscribed to that order) so the user's order page updates within ~1s. If client is offline, order updates should persist in DB (no message loss) and will reflect on next poll/connect.
+
+Deliverables (files + routes + pages)
+- Prisma schema and migration (models: User, Vendor, MenuItem, Order, OrderItem) with relations and enums. Example fields below.
+- `lib/prisma.ts` — Prisma client.
+- `pages/api/auth/[...nextauth].ts` — NextAuth config (Google provider + domain restriction + session callback writing to `User` table).
+- API endpoints using Next.js API routes and Prisma:
+  - `GET /api/vendors?openOnly=true`
+  - `GET /api/vendors/[id]/menu`
+  - `POST /api/orders` — create order (authenticated campus user). Payload: `{ vendorId, items: [{menuItemId, qty}], contact: {name, phone, roomNo} }`. Server calculates prices and saves `Order` + `OrderItem`s, `status='requested'`.
+  - `GET /api/orders/[id]` — returns detailed order with status, eta_minutes, eta_at, vendor contact (if confirmed).
+  - `GET /api/users/me/orders` — list a user's orders (ongoing + history)
+  - `PATCH /api/vendor/orders/[id]` — vendor updates order: set `status`, set `eta_minutes`, vendor_note. Only vendor for that vendorId may update.
+  - `GET /api/vendor/orders` — list vendor's orders
+- WebSocket server:
+  - Create a lightweight WS server integrated with Next.js dev server (suggest a `server.js` using `next` + `ws` to run on Replit) or a separate `ws` server file that starts in development mode. It must authenticate connections based on the logged-in user's session token (or NextAuth session cookie) and allow clients to subscribe to an `order:<orderId>` channel.
+  - When an order is updated by the vendor via PATCH, the API route must notify the WS server to broadcast the update to subscribed clients for that order.
+  - If building socket authentication is heavy, implement a simple token handshake (NextAuth session token passed at socket open) and verify via NextAuth/JWT.
+- Frontend pages:
+  - `/` — vendor listing (open/closed badge, short info).
+  - `/vendor/[id]` — vendor page: menu items, qty, add-to-cart.
+  - `/checkout` — cart review, require contact info (prefill from user profile), place order (calls POST /api/orders).
+  - `/orders/[id]` — order status page for user: realtime updates from WS (fallback to polling every 10s if socket fails), shows ETA, vendor contact (when confirmed), items and total.
+  - `/vendor/dashboard` — vendor dashboard: lists `requested` and `ongoing` orders; clicking an order shows details and allows vendor to confirm and set ETA, and progress status to preparing → ready → completed.
+  - `/admin` — admin page to CRUD vendors + menu items (protected by admin role).
+- Seed script: `prisma/seed.ts` that inserts 3–5 vendors and 2–4 menu items each, with `prep_time_minutes` and opening_hours. Seed an admin user row (email you may modify).
+- Client-side: cart stored in localStorage, checkout does auth check and prompts login if needed.
+- Security: server-side checks so only the rightful vendor can update their orders, and only the ordering user can view their order. Return 403 otherwise. Sanitize inputs.
+- Timezones: store timestamps in UTC. For vendor open/close checks, compute in IST on server side (explicitly use `Asia/Kolkata`).
+- ETA handling: Save both `eta_minutes` and `eta_at` (timestamp = created_at + eta_minutes). API should return both.
+- Logging: Minimal console logs for create/update actions so we can see events in Replit logs.
+
+Prisma schema (must create)
+- User: id (uuid, default), email (unique), name, phone, room_no, role (enum), createdAt
+- Vendor: id, name, contact_name, contact_phone, email, opening_hours (json/text), active (bool), createdAt
+- MenuItem: id, vendorId (fk), name, description, price (decimal), isAvailable (bool), prep_time_minutes (int), createdAt
+- Order: id, userId, vendorId, totalAmount (decimal), status(enum requested, confirmed, preparing, ready, completed, cancelled), eta_minutes (int, nullable), eta_at (timestamp, nullable), vendor_note, createdAt
+- OrderItem: id, orderId, menuItemId, qty, unitPrice, totalPrice
+
+Acceptance criteria (what to show me)
+1. App runs locally on Replit dev server. Homepage shows "BITS Goa Campus Food".
+2. Prisma migrations run using the `DATABASE_URL` secret and create tables in the Neon DB. Show the generated `migrations` output or SQL.
+3. NextAuth Google sign-in works and only allows `@goa.bits-pilani.ac.in`. Show example session/user created in DB.
+4. Seed script adds sample vendors and menu items to Neon DB.
+5. A student signs in, browses vendor, adds items to cart, checks out — an order is created in DB with `status='requested'`.
+6. Vendor logs in (seed vendor or admin created vendor-user) and sees the requested order in `/vendor/dashboard`. Vendor can set ETA and confirm order.
+7. When vendor confirms and sets ETA, the user order page updates within ~1s via WebSocket with ETA and vendor contact. If the user is not online, the DB reflects updates and page will show ETA on refresh.
+8. Authorization enforced: users cannot change vendor orders; vendors cannot access other vendors' orders.
+9. Provide short README with how to run, secrets to set (which I already set), and how to test the realtime flow manually.
+10. Show minimal Jest test for order total calc (optional).
+
+Other important implementation notes (do not ask me for extra secrets)
+- Use `DATABASE_URL` from Replit Secrets for Prisma only. Do not attempt to provision another DB.
+- Use `NEXTAUTH_SECRET` and Google client secrets from Replit Secrets. Use NextAuth sessions/cookies to authenticate WS handshake.
+- Server time zone calculations must consider `Asia/Kolkata`. Save all timestamps in UTC.
+- WebSocket server: prefer a `server.js` that boots Next and `ws` together so sockets run on the same process on Replit. If that is not feasible, implement a `/api/socket` endpoint that upgrades to a WebSocket and manages connections — but ensure it works in Replit.
+- Keep vendor contact privacy: vendor sees user phone/room in vendor dashboard; user sees vendor phone after confirmation.
+- Keep code modular and well-commented.
+
+Deliver the following to me in the Replit project:
+- Full source code
+- Prisma schema and migration files
+- Seed script
+- README with run & deploy steps
+- Short demo steps: (1) sign in as student, place order; (2) sign in as vendor, confirm, see WS update on student page.
+
+If anything is unclear or impossible in Replit's environment, make a clear note in the README describing the limitation and a recommended workaround. Otherwise do not ask for additional secrets; use the secrets I already provided.
+
+When you finish, run basic manual checks and then post a short summary in the Replit chat/log: which routes are ready, how to test sign-in (with example emails), and seed data IDs. Thank you.
