@@ -328,11 +328,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const data = result.data.price 
-        ? { ...result.data, price: result.data.price.toString() }
-        : result.data;
+      const updateData: Record<string, any> = {};
+      if (result.data.name !== undefined) updateData.name = result.data.name;
+      if (result.data.description !== undefined) updateData.description = result.data.description;
+      if (result.data.vendorId !== undefined) updateData.vendorId = result.data.vendorId;
+      if (result.data.isAvailable !== undefined) updateData.isAvailable = result.data.isAvailable;
+      if (result.data.price !== undefined) updateData.price = result.data.price.toString();
 
-      const menuItem = await storage.updateMenuItem(req.params.id, data);
+      const menuItem = await storage.updateMenuItem(req.params.id, updateData);
       if (!menuItem) {
         return res.status(404).json({ message: "Menu item not found" });
       }
