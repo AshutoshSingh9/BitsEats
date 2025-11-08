@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, requireRole } from "./replitAuth";
+import { setupAuth, isAuthenticated, requireRole } from "./auth";
 import { insertVendorSchema, insertMenuItemSchema, insertOrderSchema, type OrderStatus, orderStatusEnum } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { z } from "zod";
@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/users/me", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any)?.claims?.sub;
+      const userId = (req.user as any)?.id;
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -87,7 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/orders", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any)?.claims?.sub;
+      const userId = (req.user as any)?.id;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
@@ -124,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/orders/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any)?.claims?.sub;
+      const userId = (req.user as any)?.id;
       const order = await storage.getOrderById(req.params.id);
       
       if (!order) {
@@ -148,7 +148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/users/me/orders", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any)?.claims?.sub;
+      const userId = (req.user as any)?.id;
       const orders = await storage.getUserOrders(userId);
       res.json(orders);
     } catch (error: any) {

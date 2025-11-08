@@ -32,6 +32,7 @@ export const users = pgTable("users", {
   phone: text("phone"),
   roomNo: text("room_no"),
   role: roleEnum("role").notNull().default("student"),
+  passwordHash: text("password_hash"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
