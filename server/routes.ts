@@ -162,7 +162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/vendor/orders", isAuthenticated, requireRole('vendor', 'admin'), async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any)?.claims?.sub;
+      const userId = (req.user as any)?.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -184,7 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/vendor/orders/:id", isAuthenticated, requireRole('vendor', 'admin'), async (req: Request, res: Response) => {
     try {
-      const userId = (req.user as any)?.claims?.sub;
+      const userId = (req.user as any)?.id;
       const user = await storage.getUser(userId);
       
       const order = await storage.getOrderById(req.params.id);
