@@ -42,34 +42,48 @@
   - `isAuthenticated` - Verifies user is logged in
   - `requireRole(...roles)` - Checks user role
 
-## ⚠️ **What Still Needs To Be Done**
+## ✅ **Phase 2D: API Routes (COMPLETED)**
 
-### Phase 2D: API Routes (NOT IMPLEMENTED)
-❌ **`server/routes.ts`** - Currently empty, needs:
+✅ **`server/routes.ts`** - Fully implemented with all endpoints:
 
 #### Public Endpoints
-- `GET /api/vendors` - List all active vendors
-- `GET /api/vendors/:id` - Get vendor details
-- `GET /api/vendors/:id/menu` - Get vendor menu items
+- ✅ `GET /api/vendors` - List all active vendors (with optional activeOnly filter)
+- ✅ `GET /api/vendors/:id` - Get vendor details
+- ✅ `GET /api/vendors/:id/menu` - Get vendor menu items
 
 #### Authenticated User Endpoints
-- `POST /api/orders` - Create new order
-- `GET /api/orders/:id` - Get order details
-- `GET /api/users/me/orders` - Get user's order history
-- `GET /api/users/me` - Get current user info
+- ✅ `POST /api/orders` - Create new order with validation
+- ✅ `GET /api/orders/:id` - Get order details (with authorization check)
+- ✅ `GET /api/users/me/orders` - Get user's order history
+- ✅ `GET /api/users/me` - Get current user info
 
 #### Vendor Endpoints (requires vendor role)
-- `GET /api/vendor/orders` - Get vendor's orders
-- `PATCH /api/vendor/orders/:id` - Update order status
+- ✅ `GET /api/vendor/orders` - Get vendor's orders (with status filtering)
+- ✅ `PATCH /api/vendor/orders/:id` - Update order status with WebSocket broadcast
 
 #### Admin Endpoints (requires admin role)
-- Vendor CRUD: POST, GET, PATCH, DELETE `/api/admin/vendors`
-- Menu Item CRUD: POST, GET, PATCH, DELETE `/api/admin/menu-items`
+- ✅ Vendor CRUD: `GET, POST, PATCH, DELETE /api/admin/vendors`
+- ✅ Menu Item CRUD: `GET, POST, PATCH, DELETE /api/admin/menu-items`
 
-### Phase 2E: WebSocket Server (NOT IMPLEMENTED)
-❌ Real-time order updates
-❌ WebSocket authentication
-❌ Order subscription channels
+All endpoints include:
+- ✅ Zod validation for request bodies
+- ✅ Role-based authorization
+- ✅ Proper error handling
+- ✅ Type safety
+
+## ✅ **Phase 2E: WebSocket Server (COMPLETED)**
+
+✅ **WebSocket server implemented** at `/ws` path:
+- ✅ Real-time order update broadcasts
+- ✅ Order subscription channels (subscribe/unsubscribe to specific orders)
+- ✅ Automatic cleanup on disconnect
+- ✅ Integration with order status updates
+
+**How it works:**
+1. Client connects to `ws://host/ws`
+2. Client subscribes to orders with `{ type: 'SUBSCRIBE_ORDER', orderId: '...' }`
+3. When vendor updates order status, all subscribed clients receive real-time update
+4. Clients can unsubscribe with `{ type: 'UNSUBSCRIBE_ORDER', orderId: '...' }`
 
 ### Phase 2F: Frontend Integration (NOT IMPLEMENTED)
 ❌ Replace mock data with API calls
@@ -105,19 +119,24 @@
 | Database Schema | ✅ Complete | 100% |
 | Storage Layer | ✅ Complete | 100% |
 | Authentication | ✅ Complete | 100% |
-| API Routes | ❌ Not Started | 0% |
-| WebSockets | ❌ Not Started | 0% |
+| API Routes | ✅ Complete | 100% |
+| WebSockets | ✅ Complete | 100% |
 | Frontend Integration | ❌ Not Started | 0% |
 | Testing | ❌ Not Started | 0% |
 
-**Overall Project Completion: ~50%**
+**Overall Project Completion: ~75%**
 
 ## 🚀 Next Steps (Priority Order)
 
-1. **Implement API Routes** - Connect frontend to backend
-2. **Update Frontend** - Replace mock data with real API calls
-3. **Add WebSocket Server** - For real-time order updates
-4. **Testing** - Add basic tests
+1. ✅ ~~Implement API Routes~~ - COMPLETED
+2. ✅ ~~Add WebSocket Server~~ - COMPLETED
+3. **Update Frontend** - Replace mock data with real API calls (NEXT PRIORITY)
+   - Update vendor listing to call `/api/vendors`
+   - Update menu pages to call `/api/vendors/:id/menu`
+   - Update order creation to POST to `/api/orders`
+   - Add authentication UI/flow
+   - Connect to WebSocket for real-time updates
+4. **Testing** - Add basic tests for API endpoints
 5. **Production Polish** - Error handling, validation, UX improvements
 
 ## 🔒 Security Features Already Implemented

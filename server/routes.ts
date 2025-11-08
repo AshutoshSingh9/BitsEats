@@ -3,8 +3,9 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, requireRole } from "./replitAuth";
-import { insertVendorSchema, insertMenuItemSchema, insertOrderSchema, type OrderStatus } from "@shared/schema";
+import { insertVendorSchema, insertMenuItemSchema, insertOrderSchema, type OrderStatus, orderStatusEnum } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
+import { z } from "zod";
 
 const connectedClients = new Map<string, Set<WebSocket>>();
 
@@ -91,9 +92,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const result = insertOrderSchema.extend({
-        items: insertOrderSchema.shape.userId.array().min(1)
-      }).safeParse({
+      const orderCreateSchema = insertOrderSchema.extend({
+        items: z.array(z.object({
+          menuItemId: z.string(),
+          quantity: z.number().int().positive()
+        })).min(1, "At least one item is required")
+      });
+
+      const result = orderCreateSchema.safeParse({
         ...req.body,
         userId
       });
@@ -104,9 +110,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { items, ...orderData } = req.body;
+      const { items, ...orderData } = result.data;
       const order = await storage.createOrder(
-        { ...orderData, userId },
+        orderData,
         items
       );
 
@@ -190,7 +196,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden" });
       }
 
-      const { status, etaMinutes, vendorNote } = req.body;
+      const updateOrderSchema = z.object({
+        status: z.enum(orderStatusEnum.enumValues),
+        etaMinutes: z.number().int().positive().optional(),
+        vendorNote: z.string().optional()
+      });
+
+      const result = updateOrderSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: fromZodError(result.error).message 
+        });
+      }
+
+      const { status, etaMinutes, vendorNote } = result.data;
       const updatedOrder = await storage.updateOrderStatus(
         req.params.id,
         status,
