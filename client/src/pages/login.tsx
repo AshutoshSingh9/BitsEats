@@ -58,11 +58,11 @@ export default function Login() {
       // Redirect based on user role
       const role = data.user.role;
       if (role === "admin") {
-        window.location.href = "/admin";
+        setLocation("/admin");
       } else if (role === "vendor") {
-        window.location.href = "/vendor/dashboard";
+        setLocation("/vendor");
       } else {
-        window.location.href = "/";
+        setLocation("/student");
       }
     } catch (err) {
       setError("An error occurred. Please try again.");

@@ -15,13 +15,13 @@ import Admin from "@/pages/admin";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/login" component={Login} />
+      <Route path="/" component={Login} />
+      <Route path="/student" component={Home} />
+      <Route path="/admin" component={Admin} />
+      <Route path="/vendor" component={VendorDashboard} />
       <Route path="/vendor/:id" component={VendorMenu} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/orders/:id" component={OrderTracking} />
-      <Route path="/vendor/dashboard" component={VendorDashboard} />
-      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );

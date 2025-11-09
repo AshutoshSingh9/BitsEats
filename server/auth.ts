@@ -147,11 +147,18 @@ export async function setupAuth(app: Express) {
   app.get(
     "/api/auth/google/callback",
     passport.authenticate("google", {
-      failureRedirect: "/login?error=auth_failed",
+      failureRedirect: "/?error=auth_failed",
     }),
     (req, res) => {
-      // Successful authentication
-      res.redirect("/");
+      // Successful authentication - redirect based on role
+      const user = req.user as any;
+      if (user.role === "admin") {
+        res.redirect("/admin");
+      } else if (user.role === "vendor") {
+        res.redirect("/vendor");
+      } else {
+        res.redirect("/student");
+      }
     }
   );
 
