@@ -33,11 +33,12 @@
 - Transaction handling for order creation
 
 ### Phase 2C: Authentication (COMPLETE)
-✅ **Replit Auth Integration** (`server/replitAuth.ts`):
-- OpenID Connect (OIDC) authentication
+✅ **Google OAuth Integration** (`server/auth.ts`):
+- Google OAuth 2.0 authentication for students/faculty
+- Local username/password authentication for vendors/admins
 - **Email domain restriction** - Only `@goa.bits-pilani.ac.in` emails allowed
 - Session management with PostgreSQL store
-- Token refresh handling
+- Password hashing with bcrypt
 - Role-based authorization middleware:
   - `isAuthenticated` - Verifies user is logged in
   - `requireRole(...roles)` - Checks user role
@@ -102,14 +103,10 @@ All endpoints include:
 ### ✅ Currently Set Secrets (via Replit Secrets)
 - `DATABASE_URL` - Neon PostgreSQL connection string
 - `SESSION_SECRET` - For Express session encryption
-- `REPL_ID` - Auto-provided by Replit
-- `ISSUER_URL` - Auto-provided by Replit (defaults to https://replit.com/oidc)
+- `GOOGLE_CLIENT_ID` - Google OAuth client ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
 
-### ❌ Not Yet Set (Optional for future features)
-- `GOOGLE_CLIENT_ID` - If switching to Google OAuth
-- `GOOGLE_CLIENT_SECRET` - If switching to Google OAuth
-
-**Note**: Currently using Replit Auth (OIDC), which is already configured and working.
+**Note**: Currently using Google OAuth for student/faculty authentication and local auth for vendors/admins.
 
 ## 📊 Progress Summary
 
@@ -151,6 +148,6 @@ All endpoints include:
 ## 📝 Notes
 
 - **Tech Stack**: Vite + React + Express + Drizzle ORM + PostgreSQL
-- **Auth Method**: Replit Auth (OIDC) with email domain validation
+- **Auth Method**: Google OAuth (for students/faculty) + Local auth (for vendors/admins) with email domain validation
 - **Database**: Neon PostgreSQL (serverless)
 - The README.md is outdated and says Phase 2 is "NOT YET IMPLEMENTED" but much is actually complete!

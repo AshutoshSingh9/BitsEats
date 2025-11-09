@@ -252,9 +252,6 @@ SESSION_SECRET=your-random-secret-key
 # Google OAuth
 GOOGLE_CLIENT_ID=xxxxx.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-xxxxx
-
-# Replit (auto-provided)
-REPL_ID=xxxxx
 ```
 
 ---
@@ -315,25 +312,6 @@ await db.insert(users).values({
 3. **Email domain validation** can be modified in `server/auth.ts` → `validateEmail()` function
 
 4. **Password login** is optional - users created via Google OAuth won't have passwords initially
-
----
-
-## 🔄 Migration from Replit Auth
-
-### What Changed:
-- ❌ Removed: `REPL_ID`, `ISSUER_URL` (Replit-specific)
-- ✅ Added: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-- ✅ Kept: `SESSION_SECRET` (still needed!)
-
-### Files Modified:
-- `server/replitAuth.ts` → `server/auth.ts` (complete rewrite)
-- `server/routes.ts` (updated imports and user ID extraction)
-- `shared/schema.ts` (added `passwordHash` field)
-
-### Database Changes:
-- Added `password_hash` column to `users` table
-- Existing users remain unchanged
-- New users can authenticate via Google or password
 
 ---
 

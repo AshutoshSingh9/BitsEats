@@ -33,32 +33,21 @@ Instead, use **Replit Secrets** (found in the Tools panel → Secrets):
   ```
   Then add the output to Replit Secrets with key `SESSION_SECRET`
 
-### 3. REPL_ID
-- **Purpose**: Identifies your Replit project for OIDC authentication
-- **Status**: ✅ Auto-provided by Replit
-- **Note**: You don't need to set this manually
-
-### 4. ISSUER_URL
-- **Purpose**: OIDC provider URL for Replit Auth
-- **Status**: ✅ Auto-defaults to https://replit.com/oidc
-- **Note**: You don't need to set this manually
-
-## ❌ Not Currently Used (Optional for Future)
-
-### GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET
-- **Purpose**: If you want to switch from Replit Auth to Google OAuth
-- **Status**: ❌ Not set (not needed - using Replit Auth instead)
-- **How to get** (if needed in future):
+### 3. GOOGLE_CLIENT_ID
+- **Purpose**: Google OAuth client ID for student/faculty authentication
+- **Status**: ✅ Set
+- **How to get**:
   1. Go to Google Cloud Console (https://console.cloud.google.com)
   2. Create a new project or select existing
   3. Enable Google+ API
   4. Go to Credentials → Create OAuth 2.0 Client ID
-  5. Add authorized redirect URI: `https://your-repl-url.replit.app/api/callback`
-  6. Copy Client ID and Client Secret to Replit Secrets
+  5. Add authorized redirect URI: `https://your-repl-url.replit.app/api/auth/google/callback`
+  6. Copy Client ID to Replit Secrets
 
-### NEXTAUTH_SECRET
-- **Status**: ❌ Not used (project uses Replit Auth, not NextAuth.js)
-- **Note**: The README mentions this but it's not needed for current implementation
+### 4. GOOGLE_CLIENT_SECRET
+- **Purpose**: Google OAuth client secret for student/faculty authentication
+- **Status**: ✅ Set
+- **How to get**: Same process as GOOGLE_CLIENT_ID above (step 6: copy Client Secret)
 
 ## 🔍 How to Check Current Secrets
 
@@ -73,9 +62,10 @@ To check if your secrets are properly set:
 
 ```bash
 # In Replit Shell
-echo $DATABASE_URL     # Should show your Neon connection string
-echo $SESSION_SECRET   # Should show your session secret
-echo $REPL_ID          # Should show your Replit project ID
+echo $DATABASE_URL           # Should show your Neon connection string
+echo $SESSION_SECRET         # Should show your session secret
+echo $GOOGLE_CLIENT_ID       # Should show your Google OAuth client ID
+echo $GOOGLE_CLIENT_SECRET   # Should show your Google OAuth client secret
 ```
 
 **Note**: The actual values should display. If you see empty output, the secret isn't set.

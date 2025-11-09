@@ -70,9 +70,8 @@ Preferred communication style: Simple, everyday language.
 
 **Authentication System**:
 - **Dual Authentication Approach**:
-  1. **Replit Auth (OIDC)** - Primary method using OpenID Connect
-  2. **Google OAuth** - Alternative authentication (configured but Replit Auth preferred)
-  3. **Local Strategy** - Username/password for vendors and admins
+  1. **Google OAuth** - For students/faculty with @goa.bits-pilani.ac.in emails
+  2. **Local Strategy** - Username/password authentication for vendors and admins
 
 - **Email Domain Restriction**: Hard-coded validation allows only `@goa.bits-pilani.ac.in` emails (with commented-out `@gmail.com` support for testing)
 
@@ -131,7 +130,7 @@ Preferred communication style: Simple, everyday language.
 2. **Authentication**:
    - `passport` - Authentication middleware
    - `passport-google-oauth20` - Google OAuth strategy
-   - `openid-client` - OIDC/Replit Auth
+   - `passport-local` - Username/password strategy
    - `express-session` - Session management
    - `connect-pg-simple` - PostgreSQL session store
    - `bcrypt` - Password hashing for local accounts
@@ -162,9 +161,8 @@ Preferred communication style: Simple, everyday language.
 **Environment Configuration**:
 - `DATABASE_URL` - Neon PostgreSQL connection string (required)
 - `SESSION_SECRET` - Session encryption key (required, min 32 chars)
-- `REPL_ID` - Replit project identifier (auto-provided)
-- `ISSUER_URL` - OIDC provider URL (defaults to https://replit.com/oidc)
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - For Google OAuth (optional, not currently used)
+- `GOOGLE_CLIENT_ID` - Google OAuth client ID (required)
+- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret (required)
 
 **Security Notes**:
 - All secrets managed via Replit Secrets (never committed to version control)
