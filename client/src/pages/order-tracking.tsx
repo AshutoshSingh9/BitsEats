@@ -55,7 +55,7 @@ export default function OrderTracking() {
         isAuthenticated={true}
         userEmail="student@goa.bits-pilani.ac.in"
         onCartClick={() => {}}
-        onProfileClick={() => console.log('Profile clicked')}
+        onLogoutClick={() => setLocation('/')}
       />
 
       <main className="container mx-auto px-4 py-8 max-w-3xl">

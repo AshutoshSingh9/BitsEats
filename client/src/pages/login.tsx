@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +56,9 @@ export default function Login() {
         title: "Login successful",
         description: `Welcome back, ${data.user.firstName}!`,
       });
+
+      // Update auth cache with the logged-in user
+      queryClient.setQueryData(["auth", "user"], data.user);
 
       // Redirect based on user role
       const role = data.user.role;
