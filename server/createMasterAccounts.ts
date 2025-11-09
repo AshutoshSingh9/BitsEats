@@ -9,7 +9,7 @@ async function createMasterAccounts() {
   const SALT_ROUNDS = 10;
 
   // Master Vendor Account
-  const vendorEmail = "vendor@goa.bits-pilani.ac.in";
+  const vendorEmail = "vendor@gmail.com";
   const vendorPassword = "vendor123";
   const vendorPasswordHash = await bcrypt.hash(vendorPassword, SALT_ROUNDS);
 
@@ -25,7 +25,7 @@ async function createMasterAccounts() {
       passwordHash: vendorPasswordHash,
     });
     console.log("✅ Created vendor account:");
-    console.log("   Email: vendor@goa.bits-pilani.ac.in");
+    console.log("   Email: vendor@gmail.com");
     console.log("   Password: vendor123");
   } else {
     await db.update(users)
@@ -35,7 +35,7 @@ async function createMasterAccounts() {
   }
 
   // Master Admin Account
-  const adminEmail = "admin@goa.bits-pilani.ac.in";
+  const adminEmail = "admin@gmail.com";
   const adminPassword = "admin123";
   const adminPasswordHash = await bcrypt.hash(adminPassword, SALT_ROUNDS);
 
@@ -51,7 +51,7 @@ async function createMasterAccounts() {
       passwordHash: adminPasswordHash,
     });
     console.log("✅ Created admin account:");
-    console.log("   Email: admin@goa.bits-pilani.ac.in");
+    console.log("   Email: admin@gmail.com");
     console.log("   Password: admin123");
   } else {
     await db.update(users)
@@ -61,7 +61,7 @@ async function createMasterAccounts() {
   }
 
   // Master Student Account
-  const studentEmail = "student@goa.bits-pilani.ac.in";
+  const studentEmail = "student@gmail.com";
   const studentPassword = "student123";
   const studentPasswordHash = await bcrypt.hash(studentPassword, SALT_ROUNDS);
 
@@ -79,7 +79,7 @@ async function createMasterAccounts() {
       passwordHash: studentPasswordHash,
     });
     console.log("✅ Created student account:");
-    console.log("   Email: student@goa.bits-pilani.ac.in");
+    console.log("   Email: student@gmail.com");
     console.log("   Password: student123");
   } else {
     await db.update(users)
@@ -92,15 +92,15 @@ async function createMasterAccounts() {
   console.log("📝 Master Credentials Summary:");
   console.log("================================");
   console.log("Vendor Login:");
-  console.log("  Email: vendor@goa.bits-pilani.ac.in");
+  console.log("  Email: vendor@gmail.com");
   console.log("  Password: vendor123");
   console.log("");
   console.log("Admin Login:");
-  console.log("  Email: admin@goa.bits-pilani.ac.in");
+  console.log("  Email: admin@gmail.com");
   console.log("  Password: admin123");
   console.log("");
   console.log("Student Login:");
-  console.log("  Email: student@goa.bits-pilani.ac.in");
+  console.log("  Email: student@gmail.com");
   console.log("  Password: student123");
   console.log("================================");
 }
