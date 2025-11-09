@@ -22,7 +22,7 @@ export default function Home() {
         cartItemCount={0}
         isAuthenticated={false}
         onCartClick={() => setIsCartOpen(true)}
-        onLoginClick={() => console.log('Login clicked')}
+        onLoginClick={() => setLocation('/login')}
       />
 
       <main className="container mx-auto px-4 py-8">
