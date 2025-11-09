@@ -1,27 +1,20 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { WebSocketServer, WebSocket } from "ws";
+import { Server as SocketIOServer } from "socket.io";
+import passport from "passport";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, requireRole } from "./auth";
+import { setupAuth, isAuthenticated, requireRole, getSession } from "./auth";
 import { insertVendorSchema, insertMenuItemSchema, insertOrderSchema, type OrderStatus, orderStatusEnum } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { z } from "zod";
 
-const connectedClients = new Map<string, Set<WebSocket>>();
+let io: SocketIOServer;
 
 function broadcastOrderUpdate(orderId: string, updateData: any) {
-  const clients = connectedClients.get(orderId);
-  if (clients) {
-    const message = JSON.stringify({
-      type: 'ORDER_UPDATE',
+  if (io) {
+    io.to(`order:${orderId}`).emit('ORDER_UPDATE', {
       orderId,
       ...updateData
-    });
-    
-    clients.forEach(ws => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(message);
-      }
     });
   }
 }
@@ -355,56 +348,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ===========================
-  // WEBSOCKET SERVER
+  // SOCKET.IO SERVER
   // ===========================
 
   const httpServer = createServer(app);
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  io = new SocketIOServer(httpServer, {
+    cors: {
+      origin: true,
+      credentials: true
+    }
+  });
 
-  wss.on('connection', (ws: WebSocket, req) => {
-    console.log('WebSocket client connected');
+  // Use session middleware for Socket.IO authentication
+  const wrap = (middleware: any) => (socket: any, next: any) =>
+    middleware(socket.request, {}, next);
 
-    ws.on('message', (message: string) => {
-      try {
-        const data = JSON.parse(message.toString());
-        
-        if (data.type === 'SUBSCRIBE_ORDER') {
-          const orderId = data.orderId;
-          if (!connectedClients.has(orderId)) {
-            connectedClients.set(orderId, new Set());
-          }
-          connectedClients.get(orderId)!.add(ws);
-          console.log(`Client subscribed to order: ${orderId}`);
-        }
-        
-        if (data.type === 'UNSUBSCRIBE_ORDER') {
-          const orderId = data.orderId;
-          const clients = connectedClients.get(orderId);
-          if (clients) {
-            clients.delete(ws);
-            if (clients.size === 0) {
-              connectedClients.delete(orderId);
-            }
-          }
-          console.log(`Client unsubscribed from order: ${orderId}`);
-        }
-      } catch (error) {
-        console.error('WebSocket message error:', error);
-      }
+  io.use(wrap(getSession()));
+  io.use(wrap(passport.initialize()));
+  io.use(wrap(passport.session()));
+
+  // Socket.IO authentication middleware
+  io.use((socket, next) => {
+    const req = socket.request as any;
+    if (req.user) {
+      next();
+    } else {
+      next(new Error('Unauthorized'));
+    }
+  });
+
+  io.on('connection', (socket) => {
+    const user = (socket.request as any).user;
+    console.log(`Socket.IO client connected: ${user?.email}`);
+
+    socket.on('subscribe_order', (orderId: string) => {
+      socket.join(`order:${orderId}`);
+      console.log(`Client ${user?.email} subscribed to order: ${orderId}`);
     });
 
-    ws.on('close', () => {
-      connectedClients.forEach((clients, orderId) => {
-        clients.delete(ws);
-        if (clients.size === 0) {
-          connectedClients.delete(orderId);
-        }
-      });
-      console.log('WebSocket client disconnected');
+    socket.on('unsubscribe_order', (orderId: string) => {
+      socket.leave(`order:${orderId}`);
+      console.log(`Client ${user?.email} unsubscribed from order: ${orderId}`);
     });
 
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
+    socket.on('disconnect', () => {
+      console.log(`Socket.IO client disconnected: ${user?.email}`);
+    });
+
+    socket.on('error', (error) => {
+      console.error('Socket.IO error:', error);
     });
   });
 
