@@ -3,10 +3,34 @@ import Header from "@/components/Header";
 import VendorCard from "@/components/VendorCard";
 import CartSheet from "@/components/CartSheet";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "GET",
+        credentials: "include",
+      });
+      
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out.",
+      });
+      
+      setLocation("/");
+    } catch (error) {
+      toast({
+        title: "Logout failed",
+        description: "An error occurred while logging out.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const vendors = [
     { id: '1', name: 'Campus Canteen', description: 'Indian, Chinese, Continental cuisine', isOpen: true, prepTime: 15 },
@@ -20,9 +44,9 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <Header
         cartItemCount={0}
-        isAuthenticated={false}
+        isAuthenticated={true}
         onCartClick={() => setIsCartOpen(true)}
-        onLoginClick={() => setLocation('/login')}
+        onLogoutClick={handleLogout}
       />
 
       <main className="container mx-auto px-4 py-8">

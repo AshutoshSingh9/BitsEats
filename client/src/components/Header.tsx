@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User, LogIn } from "lucide-react";
+import { ShoppingCart, LogOut, LogIn } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface HeaderProps {
@@ -8,7 +8,7 @@ interface HeaderProps {
   userEmail?: string;
   onCartClick?: () => void;
   onLoginClick?: () => void;
-  onProfileClick?: () => void;
+  onLogoutClick?: () => void;
 }
 
 export default function Header({ 
@@ -17,7 +17,7 @@ export default function Header({
   userEmail,
   onCartClick,
   onLoginClick,
-  onProfileClick
+  onLogoutClick
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -48,12 +48,12 @@ export default function Header({
           
           {isAuthenticated ? (
             <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={onProfileClick}
-              data-testid="button-profile"
+              variant="outline"
+              onClick={onLogoutClick}
+              data-testid="button-logout"
             >
-              <User className="w-5 h-5" />
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
             </Button>
           ) : (
             <Button 
